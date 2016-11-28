@@ -8,6 +8,9 @@ import os
 # Configuration
 urlString = "http://www.reddit.com/r/EarthPorn/top/?sort=top&t=day"  #Reddit page to check
 folder ='img/'  #Folder to store images
+https = ["","s"]
+hosters = ["i.imgur.com/","i.redd.it/"]
+fileEndings = [".png",".jpg"]
 
 def main():
 
@@ -20,8 +23,7 @@ def main():
     imgName = 0
     numUrls = len(urlList)
 
-    # Script will grab 2 urls for each image (how Reddit is set up, I think)
-    for index in range(0,numUrls,2):
+    for index in range(0,numUrls):
         url = urlList[index]
         fileName = "img/" + time.strftime("%m") + "_" + time.strftime("%d") + "_" + "%d.jpg" %imgName
         imgName += 1
@@ -35,7 +37,13 @@ def main():
 def grabLinks():
 
     htmlSource = urllib.urlopen(urlString).read().decode("iso-8859-1")
-    urlList = re.findall("http://i.imgur.com/\w+.jpg", htmlSource)
+
+    urlList = []
+    for ending in fileEndings:
+        for hoster in hosters:
+            for letter in https:
+                links = re.findall("http" + letter + "://" + hoster + "\w+" + ending, htmlSource)
+                urlList += list(set(links)) # removes duplicates
     numImg = len(urlList)
 
     return urlList,numImg
@@ -44,13 +52,14 @@ def grabLinks():
 
 def getImage(imgUrl,fileName):
     
-    image=urllib.URLopener()
+    image = urllib.URLopener()
     image.retrieve(imgUrl,fileName)  # download comicName at URL
 
 
 def deleteOldImages():
 
-    
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
         try:
